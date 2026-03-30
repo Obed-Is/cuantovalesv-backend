@@ -1,0 +1,6 @@
+@CuantoValeSv_HostAddress = http://localhost:5238
+
+GET {{CuantoValeSv_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
