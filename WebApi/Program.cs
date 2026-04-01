@@ -1,18 +1,21 @@
+using Core.Interfaces;
+using Infrastructure.Scrapers;
+using Infrastructure.Services;
+using Microsoft.Playwright;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+IBrowser browser = await PlaywrightService.OpenBrowserChromiun();
+
+builder.Services.AddSingleton(browser);
+builder.Services.AddScoped<IScraperService, WalmartScraper>();
+builder.Services.AddScoped<ISearchService, SearchProductsService>();
+
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 
