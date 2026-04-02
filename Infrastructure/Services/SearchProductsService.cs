@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.Exceptions;
 using Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace Infrastructure.Services
 
         public async Task<List<ProductDto>> SearchAll(string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm.Trim()) || searchTerm.Length >= 40) throw new AppExceptionStatusCode(400, "Los datos ingresados son invalidos");
+
             var products = new List<ProductDto>();
 
             foreach(var scraper in _scraperServices)

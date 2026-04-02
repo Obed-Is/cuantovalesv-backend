@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+﻿using Core.Exceptions;
+using Microsoft.Playwright;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +25,8 @@ namespace Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al iniciar Playwright: {ex.Message}");
-                throw;
+                Console.WriteLine($"Error al iniciar Playwright: {ex}");
+                throw new AppExceptionStatusCode(500, "Error interno");
             }
         }
     }
