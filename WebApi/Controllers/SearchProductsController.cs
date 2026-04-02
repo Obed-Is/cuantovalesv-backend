@@ -1,6 +1,7 @@
 ﻿using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace WebApi.Controllers
 {
@@ -18,7 +19,11 @@ namespace WebApi.Controllers
         [HttpGet]
         public async Task<ActionResult> GetProducts([FromQuery] string term)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var products = await _scraperService.SearchAll(term);
+            sw.Stop();
+            Console.WriteLine($"|========| DURACION DE PETICION A LA API: {sw.ElapsedMilliseconds} ms |========|");
             return Ok(products);
         }
     }

@@ -13,6 +13,7 @@ IBrowser browser = await PlaywrightService.OpenBrowserChromiun();
 
 builder.Services.AddSingleton(browser);
 builder.Services.AddScoped<IScraperService, WalmartScraper>();
+builder.Services.AddScoped<IScraperService, SimanScraper>();
 builder.Services.AddScoped<ISearchService, SearchProductsService>();
 
 builder.Services.AddControllers();

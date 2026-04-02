@@ -6,6 +6,8 @@ using System.Text;
 using static System.Net.WebRequestMethods;
 using Microsoft.Playwright;
 using Infrastructure.Services;
+using Core.Exceptions;
+using System.Diagnostics;
 
 namespace Infrastructure.Scrapers
 {
@@ -28,12 +30,17 @@ namespace Infrastructure.Scrapers
 
         public async Task<List<ProductDto>> SearchProductsAsync(string searchTerm)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var products = new List<ProductDto>();
             var page = await _browser.NewPageAsync();
 
             try
             {
                 await page.GotoAsync($"{UrlSearch}{searchTerm}");
+
+                await page.WaitForFunctionAsync("document.querySelectorAll('.vtex-product-summary-2-x-clearLink').length >= 5");
+
                 var resultContent = await page.QuerySelectorAllAsync("[data-af-product-position]");
                 foreach (var item in resultContent)
                 {
@@ -64,15 +71,23 @@ namespace Infrastructure.Scrapers
                 }
 
             }
+            catch (PlaywrightException plEx)
+            {
+                Console.WriteLine("Error de playwright en el scraper de walmart: ", plEx.Message);
+                throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Error en el scraper de walmart: ", ex.Message);
+                throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
             }
             finally
             {
                 await page.CloseAsync();
             }
 
+            sw.Stop();
+            Console.WriteLine($"======== TIEMPO DE EJECUCION DE WALMART SCRAPER: {sw.ElapsedMilliseconds} ms ========");
             return products;
         }
     }
