@@ -39,7 +39,7 @@ namespace Infrastructure.Scrapers
             {
                 await page.GotoAsync($"{UrlSearch}{searchTerm}");
 
-                await page.WaitForFunctionAsync("document.querySelectorAll('.vtex-product-summary-2-x-clearLink').length >= 5");
+                await page.WaitForFunctionAsync("document.querySelectorAll('.vtex-product-summary-2-x-clearLink').length >= 2");
 
                 var resultContent = await page.QuerySelectorAllAsync("[data-af-product-position]");
                 foreach (var item in resultContent)
@@ -71,15 +71,16 @@ namespace Infrastructure.Scrapers
                 }
 
             }
+            // los errores se capturan pero no detienen la ejecucion de los demas scrapers se manda el list solo
             catch (PlaywrightException plEx)
             {
                 Console.WriteLine("Error de playwright en el scraper de walmart: ", plEx.Message);
-                throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
+                //throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error en el scraper de walmart: ", ex.Message);
-                throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
+                //throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
             }
             finally
             {

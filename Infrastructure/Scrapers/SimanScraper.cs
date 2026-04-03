@@ -39,7 +39,7 @@ namespace Infrastructure.Scrapers
             {
                 await page.GotoAsync($"{UrlSearch}{searchTerm}");
 
-                await page.WaitForFunctionAsync("document.querySelectorAll('.siman-algolia-react-2-x-hitLinkItem').length >= 5");
+                await page.WaitForFunctionAsync("document.querySelectorAll('.siman-algolia-react-2-x-hitLinkItem').length >= 2");
 
                 var contentElement = await page.QuerySelectorAllAsync(".siman-algolia-react-2-x-hitItem");
                 
@@ -72,15 +72,16 @@ namespace Infrastructure.Scrapers
                     });
                 }
             }
+            // los errores se capturan pero no detienen la ejecucion de los demas scrapers se manda el list solo
             catch (PlaywrightException plEx)
             {
                 Console.WriteLine($"Error de playwright en el scraper de siman: {plEx.Message}");
-                throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
+                //throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error en el scraper de siman: {ex.Message}");
-                throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
+                //throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
             }
 
             sw.Stop();
