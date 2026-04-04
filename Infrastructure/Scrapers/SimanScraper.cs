@@ -37,12 +37,30 @@ namespace Infrastructure.Scrapers
 
             try
             {
-                await page.GotoAsync($"{UrlSearch}{searchTerm}");
+                await page.RouteAsync("**/*", async route =>
+                {
+                    var req = route.Request;
+                    string[] blocked = { "image", "font", "stylesheet", "media", "websocket" };
+                    string[] blockedUrls = { "google-analytics", "facebook", "hotjar", "gtag" };
+                    if (blocked.Contains(req.ResourceType) || blockedUrls.Any(u => req.Url.Contains(u)))
+                        await route.AbortAsync();
+                    else
+                        await route.ContinueAsync();
+                });
 
-                await page.WaitForFunctionAsync("document.querySelectorAll('.siman-algolia-react-2-x-hitLinkItem').length >= 2");
+                await page.GotoAsync($"{UrlSearch}{searchTerm}", new PageGotoOptions()
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded,
+                    Timeout = 7000
+                });
+
+                await page.WaitForFunctionAsync("document.querySelectorAll('.siman-algolia-react-2-x-hitLinkItem').length >= 2", new PageWaitForFunctionOptions()
+                {
+                    Timeout = 3000
+                });
 
                 var contentElement = await page.QuerySelectorAllAsync(".siman-algolia-react-2-x-hitItem");
-                
+
                 foreach (var item in contentElement)
                 {
                     if (products.Count >= 4) break;
@@ -83,7 +101,10 @@ namespace Infrastructure.Scrapers
                 Console.WriteLine($"Error en el scraper de siman: {ex.Message}");
                 //throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
             }
-
+            finally
+            {
+                await page.CloseAsync();
+            }
             sw.Stop();
             Console.WriteLine($"======== TIEMPO DE EJECUCION DE SIMAN SCRAPER: {sw.ElapsedMilliseconds} ms ========");
             return products;

@@ -40,11 +40,27 @@ namespace Infrastructure.Scrapers
 
             try
             {
-                await page.GotoAsync($"{this.UrlSearch}{searchTerm}");
-                
-                await page.WaitForFunctionAsync(@$"Array.from(document.querySelectorAll('.prod-nombre>a')).some(s => s.textContent.toLowerCase().includes('{searchTerm.Split(" ").ToArray()[0]}'))", new PageWaitForFunctionOptions()
+                await page.RouteAsync("**/*", async route =>
                 {
+                    var req = route.Request;
+                    string[] blocked = { "image", "font", "stylesheet", "media", "websocket" };
+                    string[] blockedUrls = { "google-analytics", "facebook", "hotjar", "gtag" };
+                    if (blocked.Contains(req.ResourceType) || blockedUrls.Any(u => req.Url.Contains(u)))
+                        await route.AbortAsync();
+                    else
+                        await route.ContinueAsync();
+                });
+
+                await page.GotoAsync($"{this.UrlSearch}{searchTerm}", new PageGotoOptions()
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded,
                     Timeout = 7000
+                });
+
+                await page.WaitForSelectorAsync(".prod-box-inner", new PageWaitForSelectorOptions
+                {
+                    State = WaitForSelectorState.Attached,
+                    Timeout = 5000,
                 });
 
                 var contentElement = await page.QuerySelectorAllAsync(".prod-box-inner");
@@ -57,7 +73,7 @@ namespace Infrastructure.Scrapers
                     string urlProduct = urlAndNameElement != null ? await urlAndNameElement.GetAttributeAsync("href") ?? "Url no encontrada" : "Url no encontrada";
 
                     string name = urlAndNameElement != null ? await urlAndNameElement.TextContentAsync() ?? "Producto sin nombre" : "Producto sin nombre";
-                    
+
                     if (!name.ToLower().Contains($"{searchTerm.ToLower()}")) continue;
 
                     var priceElement = await item.QuerySelectorAsync(".precio");

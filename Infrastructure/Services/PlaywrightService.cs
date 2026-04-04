@@ -10,6 +10,20 @@ namespace Infrastructure.Services
 {
     public class PlaywrightService
     {
+        private static readonly string[] options = new[] {
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-gpu",
+                        "--disable-dev-shm-usage",
+                        "--disable-extensions",
+                        "--disable-background-networking",
+                        "--disable-default-apps",
+                        "--no-first-run",
+                        "--disable-translate",
+                        "--disable-sync",
+                        "--blink-settings=imagesEnabled=false"
+                    };
+
         public static async Task<IBrowser> OpenBrowserChromiun()
         {
             try
@@ -18,7 +32,7 @@ namespace Infrastructure.Services
 
                 var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
-                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
+                    Args = options
                 });
 
                 return browser;

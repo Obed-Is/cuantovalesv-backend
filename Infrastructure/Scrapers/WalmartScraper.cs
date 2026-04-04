@@ -37,9 +37,27 @@ namespace Infrastructure.Scrapers
 
             try
             {
-                await page.GotoAsync($"{UrlSearch}{searchTerm}");
+                await page.RouteAsync("**/*", async route =>
+                {
+                    var req = route.Request;
+                    string[] blocked = { "image", "font", "stylesheet", "media", "websocket" };
+                    string[] blockedUrls = { "google-analytics", "facebook", "hotjar", "gtag" };
+                    if (blocked.Contains(req.ResourceType) || blockedUrls.Any(u => req.Url.Contains(u)))
+                        await route.AbortAsync();
+                    else
+                        await route.ContinueAsync();
+                });
 
-                await page.WaitForFunctionAsync("document.querySelectorAll('.vtex-product-summary-2-x-clearLink').length >= 2");
+                await page.GotoAsync($"{UrlSearch}{searchTerm}", new PageGotoOptions()
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded,
+                    Timeout = 7000
+                });
+
+                await page.WaitForSelectorAsync("[data-af-product-position]", new PageWaitForSelectorOptions()
+                {
+                    Timeout = 5000
+                });
 
                 var resultContent = await page.QuerySelectorAllAsync("[data-af-product-position]");
                 foreach (var item in resultContent)
@@ -56,7 +74,7 @@ namespace Infrastructure.Scrapers
                     var priceText = priceElement != null ? await priceElement.InnerTextAsync() : "0.00";
                     decimal.TryParse(priceText?.Replace("$", "").Trim(), out decimal price);
 
-                    var imgElement  = await item.QuerySelectorAsync("img.vtex-product-summary-2-x-imageNormal");
+                    var imgElement = await item.QuerySelectorAsync("img.vtex-product-summary-2-x-imageNormal");
                     string imgUrl = imgElement != null ? await imgElement.GetAttributeAsync("src") ?? "Url de la imagen no encontrada" : "Url de la imagen no encontrada";
 
                     products.Add(new ProductDto()
