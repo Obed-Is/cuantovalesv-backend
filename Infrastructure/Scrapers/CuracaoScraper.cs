@@ -1,29 +1,29 @@
 ﻿using Core.DTOs;
 using Core.Interfaces;
+using Microsoft.Playwright;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using static System.Net.WebRequestMethods;
-using Microsoft.Playwright;
-using Infrastructure.Services;
-using Core.Exceptions;
 using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Scrapers
 {
-    public class WalmartScraper : IScraperService
+    public class CuracaoScraper : IScraperService
     {
-        public string NameSite => "Walmart";
+        public string NameSite => "Curacao";
 
-        public string UrlSite => "https://www.walmart.com.sv/";
+        public string UrlSite => "https://www.lacuracaonline.com/elsalvador/";
 
-        public string UrlSearch => "https://www.walmart.com.sv/";
+        public string UrlSearch => "https://www.lacuracaonline.com/elsalvador/search/";
 
-        public string UrlProduct => "https://www.walmart.com.sv/";
+        //la url se le asigna completa desde la extraccion de la web
+        public string UrlProduct => string.Empty;
 
-        private readonly IBrowser _browser;
+        private IBrowser _browser;
 
-        public WalmartScraper(IBrowser browser)
+        public CuracaoScraper(IBrowser browser)
         {
             _browser = browser;
         }
@@ -51,53 +51,52 @@ namespace Infrastructure.Scrapers
                 await page.GotoAsync($"{UrlSearch}{searchTerm}", new PageGotoOptions()
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded,
-                    Timeout = 7000
+                    Timeout = 5000
                 });
 
-                await page.WaitForSelectorAsync("[data-af-product-position]", new PageWaitForSelectorOptions()
+                await page.WaitForSelectorAsync("div.search.results", new PageWaitForSelectorOptions()
                 {
-                    Timeout = 7000
+                    Timeout = 5000
                 });
 
-                var resultContent = await page.QuerySelectorAllAsync("[data-af-product-position]");
+                var resultContent = await page.QuerySelectorAllAsync(".product-item-info");
+
                 foreach (var item in resultContent)
                 {
                     if (products.Count >= 4) break;
 
-                    var urlElement = await item.QuerySelectorAsync("a.vtex-product-summary-2-x-clearLink");
-                    string urlProduct = urlElement != null ? await urlElement.GetAttributeAsync("href") ?? "Url no encontrada" : "Url no encontrada";
+                    var urlAndNameElement = await item.QuerySelectorAsync(".product-item-link");
+                    string urlProduct = urlAndNameElement != null ? await urlAndNameElement.GetAttributeAsync("href") ?? "Url no encontrada" : "Url no encontrada";
 
-                    var nameElement = await item.QuerySelectorAsync("span#product-summary-sku-name");
-                    string name = nameElement != null ? await nameElement.InnerTextAsync() : "Producto sin nombre";
+                    string name = urlAndNameElement != null ? await urlAndNameElement.TextContentAsync() ?? "Producto sin nombre" : "Producto sin nombre";
 
-                    var priceElement = await item.QuerySelectorAsync(".price-container>div>div>span>span>span");
-                    var priceText = priceElement != null ? await priceElement.InnerTextAsync() : "0.00";
-                    decimal.TryParse(priceText?.Replace("$", "").Trim(), out decimal price);
+                    var priceElement = await item.QuerySelectorAsync("[data-price-type='finalPrice']");
+                    string priceText = priceElement != null ? await priceElement.InnerTextAsync() ?? "0.00" : "0.00";
+                    decimal.TryParse(priceText.Replace("$", ""), out decimal price);
 
-                    var imgElement = await item.QuerySelectorAsync("img.vtex-product-summary-2-x-imageNormal");
-                    string imgUrl = imgElement != null ? await imgElement.GetAttributeAsync("src") ?? "Url de la imagen no encontrada" : "Url de la imagen no encontrada";
+                    var imgElement = await item.QuerySelectorAsync(".product-image-photo");
+                    string urlImg = imgElement != null ? await imgElement.GetAttributeAsync("src") ?? "Url de la imagen no encontrada" : "Url de la imagen no encontrada";
 
                     products.Add(new ProductDto()
                     {
                         Name = name,
                         NameSite = this.NameSite,
                         Price = price,
-                        Url = this.UrlSite + urlProduct,
-                        UrlImg = imgUrl,
+                        Url = (urlAndNameElement is not null) ? urlProduct : urlProduct,
+                        UrlImg = urlImg,
                         UrlSite = this.UrlSite
                     });
                 }
-
             }
             // los errores se capturan pero no detienen la ejecucion de los demas scrapers se manda el list solo
             catch (PlaywrightException plEx)
             {
-                Console.WriteLine("Error de playwright en el scraper de walmart: ", plEx.Message);
+                Console.WriteLine("Error de playwright en el scraper de curacao: ", plEx.Message);
                 //throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error en el scraper de walmart: ", ex.Message);
+                Console.WriteLine("Error en el scraper de curacao: ", ex);
                 //throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
             }
             finally
@@ -106,7 +105,7 @@ namespace Infrastructure.Scrapers
             }
 
             sw.Stop();
-            Console.WriteLine($"======== TIEMPO DE EJECUCION DE WALMART SCRAPER: {sw.ElapsedMilliseconds} ms ========");
+            Console.WriteLine($"======== TIEMPO DE EJECUCION DE CURACAO SCRAPER: {sw.ElapsedMilliseconds} ms ========");
             return products;
         }
     }
