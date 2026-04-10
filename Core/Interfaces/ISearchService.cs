@@ -8,5 +8,7 @@ namespace Core.Interfaces
     public interface ISearchService
     {
         Task<List<ProductDto>> SearchAll(string searchTermn);
+
+        Task<List<ProductDto>> SearchProductsFilter(FiltersRequestDto filters, string searchTermn);
     }
 }
