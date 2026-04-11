@@ -51,12 +51,12 @@ namespace Infrastructure.Scrapers
                 await page.GotoAsync($"{UrlSearch}{searchTerm}", new PageGotoOptions()
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded,
-                    Timeout = 5000
+                    Timeout = 15000
                 });
 
                 await page.WaitForSelectorAsync("div.search.results", new PageWaitForSelectorOptions()
                 {
-                    Timeout = 5000
+                    Timeout = 10000
                 });
 
                 var resultContent = await page.QuerySelectorAllAsync(".product-item-info");
@@ -91,12 +91,12 @@ namespace Infrastructure.Scrapers
             // los errores se capturan pero no detienen la ejecucion de los demas scrapers se manda el list solo
             catch (PlaywrightException plEx)
             {
-                Console.WriteLine("Error de playwright en el scraper de curacao: ", plEx.Message);
+                Console.WriteLine($"Error de playwright en el scraper de curacao: {plEx.Message}");
                 //throw new AppExceptionStatusCode(500, "El motor de busqueda no respondio correctamente");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error en el scraper de curacao: ", ex);
+                Console.WriteLine($"Error en el scraper de curacao: {ex.Message}");
                 //throw new AppExceptionStatusCode(500, "Error interno al procesar los datos");
             }
             finally

@@ -54,13 +54,13 @@ namespace Infrastructure.Scrapers
                 await page.GotoAsync($"{this.UrlSearch}{searchTerm}", new PageGotoOptions()
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded,
-                    Timeout = 7000
+                    Timeout = 15000
                 });
 
                 await page.WaitForSelectorAsync(".prod-box-inner", new PageWaitForSelectorOptions
                 {
                     State = WaitForSelectorState.Attached,
-                    Timeout = 5000,
+                    Timeout = 10000,
                 });
 
                 var contentElement = await page.QuerySelectorAllAsync(".prod-box-inner");

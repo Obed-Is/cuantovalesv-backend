@@ -51,12 +51,12 @@ namespace Infrastructure.Scrapers
                 await page.GotoAsync($"{UrlSearch}{searchTerm}", new PageGotoOptions()
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded,
-                    Timeout = 7000
+                    Timeout = 15000
                 });
 
                 await page.WaitForFunctionAsync("document.querySelectorAll('.siman-algolia-react-2-x-hitLinkItem').length >= 2", new PageWaitForFunctionOptions()
                 {
-                    Timeout = 3000
+                    Timeout = 10000
                 });
 
                 var contentElement = await page.QuerySelectorAllAsync(".siman-algolia-react-2-x-hitItem");
