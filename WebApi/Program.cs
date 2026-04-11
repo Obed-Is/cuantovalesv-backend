@@ -19,6 +19,18 @@ builder.Services.AddRateLimiter(options =>
         op.PermitLimit = 3;
         op.Window = TimeSpan.FromSeconds(5);
     });
+
+    //se define la respuesta por bloqueo de peticiones
+    options.OnRejected = (async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            success = false,
+            message = "Has superado el limite de peticiones. Intenta nuevamente mas tarde."
+        });
+    });
 });
 
 IBrowser browser = await PlaywrightService.OpenBrowserChromiun();
