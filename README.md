@@ -99,5 +99,5 @@ Si utilizas Visual Studio 2022 o superior, establece WebApi como proyecto de ini
 ### Notas
 
 - Los resultados son obtenidos en tiempo real mediante scrapers.
-- El tiempo de respuesta puede variar según el sitio consultado y la velocidad de su intenet.
+- El tiempo de respuesta puede variar según el sitio consultado y la velocidad de su internet.
 - La disponibilidad de productos depende de cada proveedor.
