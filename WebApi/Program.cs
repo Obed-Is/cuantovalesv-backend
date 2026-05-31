@@ -33,9 +33,17 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-IBrowser browser = await PlaywrightService.OpenBrowserChromiun();
+IBrowser browser;
+try
+{
+    browser = await PlaywrightService.OpenBrowserChromiun();
+    builder.Services.AddSingleton(browser);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Ocurrio un error al iniciar el navegador de Playwright: {ex.Message}");
+}
 
-builder.Services.AddSingleton(browser);
 builder.Services.AddScoped<IScraperService, WalmartScraper>();
 builder.Services.AddScoped<IScraperService, CuracaoScraper>();
 builder.Services.AddScoped<IScraperService, SimanScraper>();
@@ -46,7 +54,8 @@ builder.Services.AddControllers();
 //configuracion del error de validacion automatica de ASP.net
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
-    options.InvalidModelStateResponseFactory = context => {
+    options.InvalidModelStateResponseFactory = context =>
+    {
         return new BadRequestObjectResult(new
         {
             success = false,
