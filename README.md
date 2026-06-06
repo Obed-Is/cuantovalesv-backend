@@ -62,7 +62,7 @@ Core ← Infrastructure ← WebApi.
 
 ### Instalacion
 
-Para ejecutar la API necesita tener instalado .NET 8 SDK y seguir estos pasos:
+Para ejecutar la API se necesita tener instalado .NET 8 SDK y seguir estos pasos:
 
 - Clonar el repositorio:
 
@@ -80,11 +80,11 @@ cd cuantovalesv-backend
 dotnet restore
 ```
 
-- Instalar navegadores de Playwright:
+- Instalar/descargar los navegadores de Playwright:
 ```bash
 pwsh bin/Debug/net8.0/playwright.ps1 install
 ``` 
-> Nota: Si el comando anterior presenta errores, consulta la documentación oficial de Playwright:
+> Nota: Si el comando anterior presenta errores, consultar la documentación oficial de Playwright:
 [playwright.dev](https://playwright.dev/dotnet/docs/browsers)
 
 - Ejecutar la API:
@@ -93,7 +93,7 @@ dotnet run --project WebApi
 ```
 
 ### Uso en Visual Studio
-Si utilizas Visual Studio 2022 o superior, establece WebApi como proyecto de inicio antes de ejecutar la solución.
+Si usas Visual Studio 2022 o superior, se debe establecer **WebApi** como proyecto de inicio antes de ejecutar la solución.
 
 
 ### Notas
