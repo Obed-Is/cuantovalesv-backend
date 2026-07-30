@@ -1,10 +1,10 @@
-using Core.Interfaces;
-using Infrastructure.Scrapers;
-using Infrastructure.Services;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Playwright;
-using WebApi.Middlewares;
+using Scrapers.Services;
+using Scrapers.SitesWeb;
+using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,43 +33,88 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-IBrowser browser;
-try
-{
-    browser = await PlaywrightService.OpenBrowserChromiun();
-    builder.Services.AddSingleton(browser);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Ocurrio un error al iniciar el navegador de Playwright: {ex.Message}");
-}
+//IBrowser browser;
+//try
+//{
+//    browser = await PlaywrightService.OpenBrowserChromiun();
+//    builder.Services.AddSingleton(browser);
+//}
+//catch (Exception ex)
+//{
+//    Console.WriteLine($"Ocurrio un error al iniciar el navegador de Playwright: {ex.Message}");
+//}
 
-builder.Services.AddScoped<IScraperService, WalmartScraper>();
-builder.Services.AddScoped<IScraperService, CuracaoScraper>();
-builder.Services.AddScoped<IScraperService, SimanScraper>();
-builder.Services.AddScoped<IScraperService, SelectosScraper>();
-builder.Services.AddScoped<ISearchService, SearchProductsService>();
+//builder.Services.AddScoped<IScraperService, WalmartScraper>();
+//builder.Services.AddScoped<IScraperService, CuracaoScraper>();
+//builder.Services.AddScoped<IScraperService, SimanScraper>();
+//builder.Services.AddScoped<IScraperService, SelectosScraper>();
+//builder.Services.AddScoped<ISearchService, SearchProductsService>();
+builder.Services.AddScoped<ScraperService>();
+builder.Services.AddScoped<WalmartScraper>();
+builder.Services.AddScoped<ValidacionesRequests>();
 
 builder.Services.AddControllers();
-//configuracion del error de validacion automatica de ASP.net
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
+        //Console.WriteLine(context.ModelState.Values.SelectMany(v => v.Errors));
+        var primerError = context.ModelState
+            .Values
+            .SelectMany(v => v.Errors)
+            .FirstOrDefault()?.ErrorMessage;
+
         return new BadRequestObjectResult(new
         {
             success = false,
-            message = "Error de validación",
-            //errors = context.ModelState
+            message = primerError ?? "Error de validacion en los datos"
         });
     };
 });
+
 
 var app = builder.Build();
 
 //middlewares
 app.UseRateLimiter();
-app.UseMiddleware<ExeptionMiddleware>();
+//app.UseMiddleware<ExeptionMiddleware>();
+//app.UseExceptionHandler(errorApp =>
+//{
+//    errorApp.Run(async context =>
+//    {
+//        var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+//        //context.Response.StatusCode = error is Exception
+//        //    ? StatusCodes.Status400BadRequest
+//        //    : StatusCodes.Status500InternalServerError;
+
+//        //await context.Response.WriteAsJsonAsync(new
+//        //{
+//        //    success = false,
+//        //    message = error?.Message
+//        //});
+
+//        if(error is ArgumentException)
+//        {
+//            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+//            await context.Response.WriteAsJsonAsync(new
+//            {
+//                success = false,
+//                message = error.Message
+//            });
+//            return;
+//        }
+
+//        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+//        await context.Response.WriteAsJsonAsync(new
+//        {
+//            success = false,
+//            message = "Ocurrio un error inesperado, si el problema persiste envianos un reporte"
+//        });
+//    });
+//});
+
 
 app.UseHttpsRedirection();
 
