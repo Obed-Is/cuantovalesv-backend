@@ -1,6 +1,4 @@
 <Solution>
-  <Project Path="Core/Core.csproj" />
-  <Project Path="Infrastructure/Infrastructure.csproj" />
   <Project Path="Scrapers/Scrapers.csproj" Id="e5233a51-34e4-4b55-8229-03489970333a" />
   <Project Path="WebApi/WebApi.csproj" />
 </Solution>
